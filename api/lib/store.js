@@ -1,9 +1,13 @@
 import { BlobPreconditionFailedError, get, put } from '@vercel/blob';
 
 export const groups = [
-  { id: 'base', label: 'Lunedì · Gruppo base', coaches: ['Allenatore 1'], names: ['Atleta 01', 'Atleta 02', 'Atleta 03'] },
-  { id: 'intermediate', label: 'Mercoledì · Gruppo intermedio', coaches: ['Allenatore 1', 'Allenatore 2'], names: ['Atleta 02', 'Atleta 04', 'Atleta 05'] },
-  { id: 'advanced', label: 'Sabato · Gruppo avanzato', coaches: ['Allenatore 2'], names: ['Atleta 01', 'Atleta 03', 'Atleta 06'] },
+  { id: 'lun-16', day: 1, venue: 'Tito', label: 'Lunedì · Turno 16:00', coaches: ['Allenatore 1', 'Allenatore 2'], names: ['Atleta 01', 'Atleta 02', 'Atleta 03', 'Atleta 04'] },
+  { id: 'lun-17', day: 1, venue: 'Tito', label: 'Lunedì · Turno 17:00', coaches: ['Allenatore 1', 'Allenatore 2'], names: ['Atleta 05', 'Atleta 06', 'Atleta 07', 'Atleta 08'] },
+  { id: 'mar-17', day: 2, venue: 'EUR', label: 'Martedì · Junior e avviamento', coaches: ['Allenatore 2', 'Allenatore 3'], names: ['Atleta 01', 'Atleta 04', 'Atleta 09', 'Atleta 10'] },
+  { id: 'mer-16', day: 3, venue: 'Tito', label: 'Mercoledì · Turno 16:00', coaches: ['Allenatore 1', 'Allenatore 3'], names: ['Atleta 02', 'Atleta 03', 'Atleta 05', 'Atleta 11'] },
+  { id: 'gio-17', day: 4, venue: 'Tito', label: 'Giovedì · Turno 17:00', coaches: ['Allenatore 1', 'Allenatore 2'], names: ['Atleta 06', 'Atleta 07', 'Atleta 08', 'Atleta 12'] },
+  { id: 'ven-18', day: 5, venue: 'EUR', label: 'Venerdì · Master 18:00', coaches: ['Allenatore 2', 'Allenatore 3'], names: ['Atleta 01', 'Atleta 03', 'Atleta 09', 'Atleta 12'] },
+  { id: 'sab-16', day: 6, venue: 'EUR', label: 'Sabato · Master 16:00', coaches: ['Allenatore 1', 'Allenatore 3'], names: ['Atleta 02', 'Atleta 04', 'Atleta 10', 'Atleta 11'] },
 ];
 
 export function sendJson(response, status, body) {

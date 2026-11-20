@@ -13,7 +13,8 @@ function parseBody(request) {
 function normalizeRecord(input) {
   const date = requireDate(input.date);
   const group = requireGroup(input.groupId);
-  if (typeof input.coach !== 'string' || !group.coaches.includes(input.coach)) throw new Error('Allenatore non valido.');
+  const staff = Array.isArray(input.staff) ? [...new Set(input.staff)] : [input.coach].filter(Boolean);
+  if (!staff.length || staff.some((name) => typeof name !== 'string' || !group.coaches.includes(name))) throw new Error('Staff non valido.');
   if (!input.attendance || typeof input.attendance !== 'object' || Array.isArray(input.attendance)) throw new Error('Presenze non valide.');
   const allowedAthletes = new Set(group.names);
   const attendance = Object.entries(input.attendance)
@@ -23,7 +24,14 @@ function normalizeRecord(input) {
       return { athleteId, status };
     });
   if (attendance.length > group.names.length) throw new Error('Troppe presenze.');
-  return { date, group, coach: input.coach, attendance };
+  const extras = Array.isArray(input.extras) ? input.extras : [];
+  if (extras.length > 25) throw new Error('Troppi atleti extra.');
+  const normalizedExtras = extras.map((extra) => {
+    if (!extra || typeof extra.name !== 'string' || !/\S/.test(extra.name) || extra.name.length > 100) throw new Error('Nome extra non valido.');
+    if (!['Prova', 'Recupero'].includes(extra.type) || !allowedStatuses.has(extra.status)) throw new Error('Atleta extra non valido.');
+    return { name: extra.name.trim(), type: extra.type, status: extra.status };
+  });
+  return { date, group, staff, attendance, extras: normalizedExtras };
 }
 
 export default async function handler(request, response) {
@@ -40,7 +48,7 @@ export default async function handler(request, response) {
     const pathname = pathnameFor(input.date, input.group.id);
     const existing = await readRecord(pathname);
     if ((input.version || null) !== (existing?.etag || null)) return sendJson(response, 409, { error: 'Versione non aggiornata.', current: existing ? { ...existing.value, version: existing.etag } : null });
-    const record = { schemaVersion: 1, date: input.date, groupId: input.group.id, coach: input.coach, attendance: input.attendance, savedAt: new Date().toISOString(), revision: crypto.randomUUID() };
+    const record = { schemaVersion: 2, date: input.date, groupId: input.group.id, staff: input.staff, attendance: input.attendance, extras: input.extras, savedAt: new Date().toISOString(), revision: crypto.randomUUID() };
     let saved;
     try { saved = await writeRecord(pathname, record, existing?.etag); }
     catch (error) { if (error.code === 'CONFLICT') { const current = await readRecord(pathname); return sendJson(response, 409, { error: 'Versione non aggiornata.', current: current ? { ...current.value, version: current.etag } : null }); } throw error; }
