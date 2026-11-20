@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; color: #152033; background: #f4f7fb; }
+    body { margin: 0; } main { max-width: 900px; margin: 0 auto; padding: 2rem 1rem 3rem; }
+    h1 { margin: 0 0 .35rem; } .intro { color: #526176; margin-top: 0; }
+    .card { background: #fff; border-radius: 14px; box-shadow: 0 5px 20px #15203314; padding: 1.25rem; margin-top: 1rem; }
+    label { display: block; font-weight: 650; margin: .8rem 0 .3rem; } input, select, button { font: inherit; }
+    input, select { box-sizing: border-box; border: 1px solid #bac7d8; border-radius: 8px; padding: .6rem; width: 100%; }
+    table { border-collapse: collapse; width: 100%; margin-top: 1rem; } th, td { border-bottom: 1px solid #e2e8f0; padding: .6rem; text-align: left; }
+    .choices { display: flex; gap: .35rem; } .choice { width: auto; min-width: 2.4rem; background: #fff; cursor: pointer; }
+    .choice.selected { background: #1c5bbf; color: #fff; border-color: #1c5bbf; }
+    .action { background: #0d714f; color: #fff; border: 0; border-radius: 8px; padding: .7rem 1rem; margin-top: 1.2rem; cursor: pointer; }
+    .action:disabled { opacity: .6; cursor: wait; } #status { min-height: 1.5rem; font-weight: 600; } .error { color: #b42318; }
+    @media (max-width: 520px) { main { padding: 1.25rem .75rem; } th, td { padding: .45rem .2rem; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Registro presenze</h1>
+    <p class="intro">Seleziona un gruppo, indica l’allenatore e registra l’appello.</p>
+    <section class="card" aria-labelledby="details-title">
+      <h2 id="details-title">Dettagli allenamento</h2>
+      <label for="date">Data</label><input id="date" type="date" required>
+      <label for="group">Gruppo</label><select id="group"></select>
+      <label for="coach">Allenatore</label><select id="coach"></select>
+    </section>
+    <section class="card" aria-labelledby="attendance-title">
+      <h2 id="attendance-title">Appello</h2>
+      <p id="status" role="status" aria-live="polite"></p>
+      <table><thead><tr><th>Atleta</th><th>Esito</th></tr></thead><tbody id="rows"></tbody></table>
+      <button id="save" class="action" type="button">Salva appello</button>
+    </section>
+  </main>
+  <script>
+    const state = { groups: [], presences: {} };
+    const $ = id => document.getElementById(id);
+    const escapeHtml = value => String(value).replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
+    const selectedGroup = () => state.groups.find(group => group.label === $('group').value);
+    const setStatus = (message, error) => { $('status').textContent = message; $('status').className = error ? 'error' : ''; };
+
+    function renderGroup() {
+      const group = selectedGroup();
+      $('coach').innerHTML = group.coaches.map(name => `<option>${escapeHtml(name)}</option>`).join('');
+      $('rows').innerHTML = group.names.map(name => `<tr><td>${escapeHtml(name)}</td><td><div class="choices">${['P', 'A', 'R'].map(status => `<button type="button" class="choice ${state.presences[name] === status ? 'selected' : ''}" data-name="${escapeHtml(name)}" data-status="${status}" aria-label="${escapeHtml(name)}: ${status}">${status}</button>`).join('')}</div></td></tr>`).join('');
+    }
+
+    function loadPresences() {
+      setStatus('Caricamento appello…');
+      google.script.run.withSuccessHandler(presences => { state.presences = presences; renderGroup(); setStatus(''); }).withFailureHandler(showError).getPresenze($('date').value, $('group').value);
+    }
+
+    function showError(error) { setStatus(error.message || 'Si è verificato un errore.', true); }
+    $('group').addEventListener('change', loadPresences);
+    $('date').addEventListener('change', loadPresences);
+    $('rows').addEventListener('click', event => {
+      const button = event.target.closest('[data-status]'); if (!button) return;
+      state.presences[button.dataset.name] = button.dataset.status; renderGroup();
+    });
+    $('save').addEventListener('click', () => {
+      const button = $('save'); button.disabled = true; setStatus('Salvataggio in corso…');
+      google.script.run.withSuccessHandler(result => { setStatus(`Appello salvato: ${result.count} presenze.`); button.disabled = false; }).withFailureHandler(error => { showError(error); button.disabled = false; }).salvaPresenze({ date: $('date').value, group: $('group').value, coach: $('coach').value, presences: state.presences });
+    });
+    $('date').value = new Date().toISOString().slice(0, 10);
+    google.script.run.withSuccessHandler(groups => { state.groups = groups; $('group').innerHTML = groups.map(group => `<option>${escapeHtml(group.label)}</option>`).join(''); loadPresences(); }).withFailureHandler(showError).getGruppi();
+  </script>
+</body>
+</html>

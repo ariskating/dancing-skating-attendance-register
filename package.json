@@ -1,0 +1,7 @@
+{
+  "name": "dancing-skating-attendance-register",
+  "private": true,
+  "scripts": {
+    "check": "node tests/static-check.mjs"
+  }
+}
