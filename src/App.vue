@@ -54,6 +54,13 @@ async function request(url, options) {
 }
 function recordFor(date) { return records.value[date] || { attendance: [], staff: [], extras: [], version: null }; }
 function statusesFor(date) { return Object.fromEntries(recordFor(date).attendance.map((entry) => [entry.athleteId, entry.status])); }
+function groupCard(label) {
+  const detail = label.split('—').at(-1)?.trim() || label;
+  const match = detail.match(/\d{1,2}(?::\d{2})?(?:\s*[-–]\s*\d{1,2}(?::\d{2})?)?\s*$/);
+  if (!match) return { time: 'Turno', name: detail };
+  const time = match[0].trim().replace(/\d{1,2}(?=\s*(?:[-–]|$))/g, (value, offset, source) => source.slice(offset, offset + value.length + 1).includes(':') ? value : `${value}:00`).replace(/\s*[-–]\s*/, '–');
+  return { time, name: detail.slice(0, -match[0].length).trim() || 'Allenamento' };
+}
 function markDirty(message = 'Modifiche non salvate · premi Salva appello della data selezionata.') { dirty.value = true; status.value = message; }
 function confirmDiscard() { return !dirty.value || window.confirm('Ci sono modifiche non salvate. Vuoi abbandonarle?'); }
 function chooseDay(value) { if (!confirmDiscard()) return; day.value = value; groupId.value = groups.value.find((group) => group.day === value)?.id || groups.value[0].id; selectedStaff.value = []; dirty.value = false; loadMonth(); }
@@ -102,7 +109,7 @@ loadConfig();
     <section class="panel">
       <header class="head"><div class="brandlogo" aria-hidden="true">DS</div><div class="headtext"><strong>Registro presenze</strong><span class="sub">ASD Dancing Skating Club Roma</span></div><span class="private-badge">Archivio privato</span></header>
       <div class="days" role="group" aria-label="Seleziona giornata"><button v-for="item in days" :key="item.id" class="day" :class="{ active: day === item.id }" :disabled="loading || saving" @click="chooseDay(item.id)">{{ item.name }}<small>{{ item.place }}</small></button></div>
-      <label>Orario e gruppo</label><div class="group-buttons" role="group" aria-label="Seleziona orario e gruppo"><button v-for="item in activeGroups" :key="item.id" class="group-button" :class="{ active: groupId === item.id }" :disabled="loading || saving" @click="chooseGroup(item.id)"><strong>{{ item.label.includes(' · ') ? item.label.split(' · ')[1] : item.label }}</strong><small>{{ item.venue }} · {{ item.names.length }} atleti</small></button></div>
+      <label>Orario e gruppo</label><div class="group-buttons" role="group" aria-label="Seleziona orario e gruppo"><button v-for="item in activeGroups" :key="item.id" class="group-button" :class="{ active: groupId === item.id }" :disabled="loading || saving" @click="chooseGroup(item.id)"><strong>{{ groupCard(item.label).time }}</strong><small>{{ groupCard(item.label).name }}</small></button></div>
       <label>Staff presente</label><div class="staff"><label v-for="name in activeGroup.coaches" :key="name" class="coach-check"><input type="checkbox" :checked="selectedStaff.includes(name)" :disabled="loading || saving" @change="toggleStaff(name)"><span>{{ name }}</span></label></div>
       <div class="months"><button v-for="value in [10, 11, 12]" :key="value" :class="{ active: month === value }" :disabled="loading || saving" @click="chooseMonth(value)">{{ monthNames[value - 10] }}</button></div>
     </section>
