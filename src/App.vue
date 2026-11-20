@@ -58,7 +58,7 @@ function groupCard(label) {
   const detail = label.split('—').at(-1)?.trim() || label;
   const match = detail.match(/\d{1,2}(?::\d{2})?(?:\s*[-–]\s*\d{1,2}(?::\d{2})?)?\s*$/);
   if (!match) return { time: 'Turno', name: detail };
-  const time = match[0].trim().replace(/\d{1,2}(?=\s*(?:[-–]|$))/g, (value, offset, source) => source.slice(offset, offset + value.length + 1).includes(':') ? value : `${value}:00`).replace(/\s*[-–]\s*/, '–');
+  const time = match[0].trim().split(/\s*[-–]\s*/).map((part) => part.includes(':') ? part : `${part}:00`).join('–');
   return { time, name: detail.slice(0, -match[0].length).trim() || 'Allenamento' };
 }
 function markDirty(message = 'Modifiche non salvate · premi Salva appello della data selezionata.') { dirty.value = true; status.value = message; }
