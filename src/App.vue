@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
+import clubLogo from '../assets/logo-dancing.jpg';
 
 const fallbackGroups = [
   { id: 'lun-16', day: 1, venue: 'Tito', label: 'Lunedì · Turno 16:00', coaches: ['Allenatore 1', 'Allenatore 2'], names: ['Atleta 01', 'Atleta 02', 'Atleta 03', 'Atleta 04'] },
@@ -120,7 +121,7 @@ loadConfig();
 <template>
   <main class="wrap">
     <section class="panel">
-      <header class="head"><div class="brandlogo" aria-hidden="true">DS</div><div class="headtext"><strong>Registro presenze</strong><span class="sub">ASD Dancing Skating Club Roma</span></div><span class="private-badge">Archivio privato</span></header>
+      <header class="head"><img class="brandlogo" :src="clubLogo" alt="Logo ASD Dancing Skating Club Roma"><div class="headtext"><strong>Registro presenze</strong><span class="sub">ASD Dancing Skating Club Roma</span></div><span class="private-badge">Archivio privato</span></header>
       <div class="days" role="group" aria-label="Seleziona giornata"><button v-for="item in days" :key="item.id" class="day" :class="{ active: day === item.id }" :disabled="loading || saving" @click="chooseDay(item.id)">{{ item.name }}<small>{{ item.place }}</small></button></div>
       <label>Orario e gruppo</label><div class="group-buttons" role="group" aria-label="Seleziona orario e gruppo"><button v-for="item in activeGroups" :key="item.id" class="group-button" :class="{ active: groupId === item.id }" :disabled="loading || saving" @click="chooseGroup(item.id)"><strong>{{ groupCard(item.label).time }}</strong><small>{{ groupCard(item.label).name }}</small></button></div>
       <label>Staff presente</label><div class="staff"><label v-for="name in activeGroup.coaches" :key="name" class="coach-check"><input type="checkbox" :checked="selectedStaff.includes(name)" :disabled="loading || saving" @change="toggleStaff(name)"><span>{{ name }}</span></label></div>
