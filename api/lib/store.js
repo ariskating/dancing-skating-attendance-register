@@ -47,19 +47,31 @@ function extractGroups(source) {
   throw new Error('Archivio gruppi incompleto.');
 }
 
-function extractStaff(source) {
-  const fallbackMatch = source.match(/staffPerTurno[\s\S]*?\|\|\(\[([^\]]+)\]\)/);
-  if (!fallbackMatch) return ['Staff 1', 'Staff 2', 'Staff 3'];
-  const names = [...fallbackMatch[1].matchAll(/['"]([^'"]+)['"]/g)].map((match) => match[1].trim()).filter(Boolean);
-  return names.length ? [...new Set(names)] : ['Staff 1', 'Staff 2', 'Staff 3'];
-}
+const defaultStaff = ['Arianna', 'Daniela', 'Lisa', 'Sofia', 'Jamila', 'Giulia', 'Laura', 'Anya'];
+const staffByGroup = {
+  'Mercoledì — MASTER 15:30': ['Daniela', 'Lisa'],
+  'Lunedì — TURNO 16': ['Arianna', 'Daniela'],
+  'Lunedì — TURNO 17': ['Arianna', 'Daniela', 'Sofia', 'Jamila', 'Ania'],
+  'Lunedì — TURNO 18': ['Arianna', 'Daniela', 'Fabrizio', 'Laura'],
+  'Lunedì — TURNO 19': ['Daniela', 'Fabrizio', 'Laura'],
+  'Mar - eur — JUNIOR E MASTER AVV': ['Arianna', 'Lisa'],
+  'Mar - eur — MASTER INTERMEDIO': ['Arianna', 'Lisa'],
+  'Mercoledì — TURNO 17': ['Daniela', 'Sofia', 'Jamila', 'Giulia'],
+  'Mercoledì — TURNO 18': ['Daniela', 'Laura', 'Sofia', 'Anya'],
+  'Mercoledì — TURNO 19': ['Daniela', 'Laura', 'Sofia', 'Anya'],
+  'Giovedì — TURNO 16': ['Daniela', 'Lisa'],
+  'Giovedì — TURNO 17': ['Daniela', 'Lisa', 'Sofia', 'Jamila', 'Anya'],
+  'Ven - eur — MASTER INTERMEDIO': ['Arianna', 'Daniela', 'Lisa'],
+  'Ven - eur — JUNIOR + MASTER AVVI': ['Arianna', 'Daniela', 'Lisa'],
+  'Ven - eur — TRISETTIMANALI': ['Arianna', 'Sofia'],
+  'Ven - eur — MASTER AVANZATE 19-19:30': ['Lisa', 'Daniela'],
+};
 
 export async function getGroups() {
   const result = await get(privateRosterPath, { access: 'private' });
   if (!result) return groups;
   const source = await new Response(result.stream).text();
   const sourceGroups = extractGroups(source);
-  const staff = extractStaff(source);
   const italicMatch = source.match(/const APPELLO_CORSIVO\s*=\s*(\{[\s\S]*?\})\s*;/);
   const italicByGroup = italicMatch ? JSON.parse(italicMatch[1]) : {};
   return sourceGroups.map((group, index) => ({
@@ -67,7 +79,7 @@ export async function getGroups() {
     day: groupDay(group.label),
     venue: /eur/i.test(group.label) ? 'EUR' : 'Tito',
     label: group.label,
-    coaches: staff,
+    coaches: groupDay(group.label) === 6 ? ['Fabrizio', 'Susanna'] : (staffByGroup[group.label] || defaultStaff),
     names: group.names,
     italicNames: italicByGroup[group.label] || [],
   })).filter((group) => group.day && Array.isArray(group.names) && group.names.length && !hiddenLegacyGroups.has(group.label));
