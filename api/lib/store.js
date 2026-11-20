@@ -60,6 +60,8 @@ export async function getGroups() {
   const source = await new Response(result.stream).text();
   const sourceGroups = extractGroups(source);
   const staff = extractStaff(source);
+  const italicMatch = source.match(/const APPELLO_CORSIVO\s*=\s*(\{[\s\S]*?\})\s*;/);
+  const italicByGroup = italicMatch ? JSON.parse(italicMatch[1]) : {};
   return sourceGroups.map((group, index) => ({
     id: `roster-${index + 1}`,
     day: groupDay(group.label),
@@ -67,6 +69,7 @@ export async function getGroups() {
     label: group.label,
     coaches: staff,
     names: group.names,
+    italicNames: italicByGroup[group.label] || [],
   })).filter((group) => group.day && Array.isArray(group.names) && group.names.length && !hiddenLegacyGroups.has(group.label));
 }
 
