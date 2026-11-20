@@ -7,15 +7,15 @@ Interfaccia Vue 3 leggera per l’appello di gruppi sportivi. È pensata per ess
 - Vue 3 in build di produzione, senza toolchain o dipendenze di build
 - Calendario, gruppo, allenatore e stati `P`, `A`, `R`
 - Comandi per segnare tutto presente, azzerare e scaricare un CSV
-- Salvataggio solo nella sessione del browser: nessun dato viene inviato dal sito pubblico
+- Salvataggio server-side in una private Vercel Blob Store europea (`fra1`)
 - Interfaccia responsive, tastiera accessibile e messaggi di stato annunciati
 - Header di sicurezza e pagina esclusa dall’indicizzazione
 
 ## Privacy e integrazione dati
 
-Il deploy Vercel non contiene nomi reali, né chiavi, né un database. L’app conserva l’appello soltanto con `sessionStorage`: chiudendo la sessione del browser, i dati locali vengono rimossi.
+Il deploy Vercel non contiene nomi reali, chiavi o presenze. I record sono scritti soltanto da `/api/attendance` in una **private** Vercel Blob Store: non hanno URL pubblici e sono accessibili unicamente attraverso le funzioni del progetto protette da Vercel Authentication. Il token Blob resta nei segreti dell’ambiente Vercel, mai nel browser né nel repository.
 
-`Code.gs` conserva il modello backend Google Apps Script separato, con convalida e lock concorrente. Prima di usare dati personali occorre collegare un backend autenticato e privato (per esempio un servizio API con controllo degli accessi) e non inserirli mai nella repository o nel bundle del browser.
+Ogni scrittura convalida data, gruppo, allenatore e stati; usa l’ETag Blob per il controllo ottimistico di concorrenza e salva un evento di audit privato. Se due persone aggiornano lo stesso appello, la seconda riceve un conflitto e l’interfaccia ricarica la versione corrente invece di sovrascriverla.
 
 ## Sviluppo e verifica
 

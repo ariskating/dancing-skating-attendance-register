@@ -2,6 +2,9 @@
   "name": "dancing-skating-attendance-register",
   "private": true,
   "type": "module",
+  "dependencies": {
+    "@vercel/blob": "^2.3.0"
+  },
   "scripts": {
     "build": "node --check assets/app.js && node tests/static-check.mjs",
     "check": "node tests/static-check.mjs"
