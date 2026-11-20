@@ -6,35 +6,10 @@
     <meta name="description" content="Registro presenze veloce, privato e basato su Vue.">
     <meta name="robots" content="noindex, nofollow">
     <title>Registro presenze</title>
-    <link rel="stylesheet" href="/assets/styles.css">
-    <script defer src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-    <script defer src="/assets/app.js"></script>
+    <script type="module" src="/src/main.js"></script>
   </head>
   <body>
     <noscript>Per usare il registro presenze è necessario abilitare JavaScript.</noscript>
-    <main id="app" class="shell" v-cloak>
-      <header class="masthead">
-        <div>
-          <p class="eyebrow">Dancing · registro digitale</p>
-          <h1>Appello, senza frizione.</h1>
-          <p class="lede">Una schermata rapida per registrare la presenza, con archivio privato e controllo delle modifiche concorrenti.</p>
-        </div>
-        <div class="privacy-note" aria-label="Indicatore privacy"><span class="lock" aria-hidden="true">⌁</span><span>Archivio privato<br><strong>Accesso protetto</strong></span></div>
-      </header>
-      <section class="panel setup" aria-labelledby="session-title">
-        <div class="section-heading"><p class="eyebrow">01 · Sessione</p><h2 id="session-title">Imposta l’allenamento</h2></div>
-        <div class="fields">
-          <label>Data<input v-model="date" type="date" :disabled="loading || saving" @change="loadAttendance"></label>
-          <label>Gruppo<select v-model="groupId" :disabled="loading || saving" @change="changeGroup"><option v-for="group in groups" :key="group.id" :value="group.id">{{ group.label }}</option></select></label>
-          <label>Allenatore<select v-model="coach"><option v-for="name in activeGroup.coaches" :key="name">{{ name }}</option></select></label>
-        </div>
-      </section>
-      <section class="panel attendance" aria-labelledby="attendance-title">
-        <div class="attendance-head"><div><p class="eyebrow">02 · Appello</p><h2 id="attendance-title">{{ formattedDate }}</h2><p class="muted">{{ activeGroup.label }} · {{ activeGroup.names.length }} atleti</p></div><div class="legend" aria-label="Legenda"><span><i class="dot present"></i>Presente</span><span><i class="dot absent"></i>Assente</span><span><i class="dot rain"></i>Pioggia</span></div></div>
-        <div class="quick-actions" aria-label="Azioni rapide"><button class="subtle" type="button" @click="markAll('P')">Tutti presenti</button><button class="subtle" type="button" @click="clearAll">Azzera</button></div>
-        <div class="roster" role="list" aria-label="Elenco atleti"><article class="athlete" v-for="name in activeGroup.names" :key="name" role="listitem"><span class="athlete-name">{{ name }}</span><div class="status-controls" :aria-label="`Esito per ${name}`"><button v-for="status in statuses" :key="status.value" type="button" class="status-button" :class="[status.className, { selected: attendance[name] === status.value }]" :aria-pressed="attendance[name] === status.value" @click="setStatus(name, status.value)">{{ status.label }}</button></div></article></div>
-        <footer class="save-bar"><p id="status-message" class="status-message" role="status" aria-live="polite">{{ message }}</p><div class="save-actions"><button class="subtle" type="button" @click="exportCsv">Scarica CSV</button><button class="primary" type="button" :disabled="loading || saving" @click="saveAttendance">{{ saving ? 'Salvataggio…' : 'Salva in archivio' }}</button></div></footer>
-      </section>
-    </main>
+    <div id="app"></div>
   </body>
 </html>
