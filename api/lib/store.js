@@ -24,7 +24,7 @@ export function assertSameOrigin(request) {
 }
 
 export function requireGroup(groupId) {
-  if (typeof groupId !== 'string' || !/^[a-z-]{2,32}$/.test(groupId)) throw new Error('Gruppo non valido.');
+  if (typeof groupId !== 'string' || !/^[a-z0-9-]{2,32}$/.test(groupId)) throw new Error('Gruppo non valido.');
   const group = groups.find((item) => item.id === groupId);
   if (!group) throw new Error('Gruppo non valido.');
   return group;
