@@ -1,6 +1,7 @@
 {
   "name": "dancing-skating-attendance-register",
   "private": true,
+  "type": "module",
   "scripts": {
     "check": "node tests/static-check.mjs"
   }
