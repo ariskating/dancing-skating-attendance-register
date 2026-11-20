@@ -115,7 +115,7 @@ export function requireDate(date) {
 export async function readRecord(pathname) {
   const result = await get(pathname, { access: 'private' });
   if (!result) return null;
-  return { value: await new Response(result.stream).json(), etag: result.etag };
+  return { value: await new Response(result.stream).json(), etag: result.blob.etag };
 }
 
 export async function writeRecord(pathname, value, etag) {
