@@ -10,6 +10,48 @@ export const groups = [
   { id: 'sab-16', day: 6, venue: 'EUR', label: 'Sabato · Master 16:00', coaches: ['Allenatore 1', 'Allenatore 3'], names: ['Atleta 02', 'Atleta 04', 'Atleta 10', 'Atleta 11'] },
 ];
 
+const privateRosterPath = 'configuration/original-roster-source.txt';
+
+function groupDay(label) {
+  const normalized = label.toLocaleLowerCase('it-IT');
+  if (normalized.startsWith('luned')) return 1;
+  if (normalized.startsWith('mar')) return 2;
+  if (normalized.startsWith('mer')) return 3;
+  if (normalized.startsWith('gio')) return 4;
+  if (normalized.startsWith('ven')) return 5;
+  if (normalized.startsWith('sab')) return 6;
+  return null;
+}
+
+function extractGroups(source) {
+  const marker = source.indexOf('const GROUPS =');
+  const start = source.indexOf('[', marker);
+  if (marker < 0 || start < 0) throw new Error('Archivio gruppi non leggibile.');
+  let depth = 0; let quoted = false; let escaped = false;
+  for (let index = start; index < source.length; index += 1) {
+    const character = source[index];
+    if (quoted) { if (escaped) escaped = false; else if (character === '\\') escaped = true; else if (character === '"') quoted = false; continue; }
+    if (character === '"') { quoted = true; continue; }
+    if (character === '[') depth += 1;
+    if (character === ']') { depth -= 1; if (depth === 0) return JSON.parse(source.slice(start, index + 1)); }
+  }
+  throw new Error('Archivio gruppi incompleto.');
+}
+
+export async function getGroups() {
+  const result = await get(privateRosterPath, { access: 'private' });
+  if (!result) return groups;
+  const sourceGroups = extractGroups(await new Response(result.stream).text());
+  return sourceGroups.map((group, index) => ({
+    id: `roster-${index + 1}`,
+    day: groupDay(group.label),
+    venue: /eur/i.test(group.label) ? 'EUR' : 'Tito',
+    label: group.label,
+    coaches: ['Staff 1', 'Staff 2', 'Staff 3'],
+    names: group.names,
+  })).filter((group) => group.day && Array.isArray(group.names) && group.names.length);
+}
+
 export function sendJson(response, status, body) {
   response.status(status).setHeader('Cache-Control', 'private, no-store, max-age=0').setHeader('Content-Type', 'application/json; charset=utf-8').send(JSON.stringify(body));
 }
@@ -23,9 +65,9 @@ export function assertSameOrigin(request) {
   if (origin !== permitted && !/^http:\/\/localhost(?::\d+)?$/.test(origin)) throw new Error('Origine della richiesta non autorizzata.');
 }
 
-export function requireGroup(groupId) {
+export function requireGroup(groupId, roster = groups) {
   if (typeof groupId !== 'string' || !/^[a-z0-9-]{2,32}$/.test(groupId)) throw new Error('Gruppo non valido.');
-  const group = groups.find((item) => item.id === groupId);
+  const group = roster.find((item) => item.id === groupId);
   if (!group) throw new Error('Gruppo non valido.');
   return group;
 }

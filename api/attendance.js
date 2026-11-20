@@ -1,4 +1,4 @@
-import { assertSameOrigin, readRecord, requireDate, requireGroup, sendJson, writeAudit, writeRecord } from './lib/store.js';
+import { assertSameOrigin, getGroups, readRecord, requireDate, requireGroup, sendJson, writeAudit, writeRecord } from './lib/store.js';
 
 const allowedStatuses = new Set(['P', 'A', 'R']);
 
@@ -10,9 +10,9 @@ function parseBody(request) {
   return body;
 }
 
-function normalizeRecord(input) {
+function normalizeRecord(input, roster) {
   const date = requireDate(input.date);
-  const group = requireGroup(input.groupId);
+  const group = requireGroup(input.groupId, roster);
   const staff = Array.isArray(input.staff) ? [...new Set(input.staff)] : [input.coach].filter(Boolean);
   if (!staff.length || staff.some((name) => typeof name !== 'string' || !group.coaches.includes(name))) throw new Error('Staff non valido.');
   if (!input.attendance || typeof input.attendance !== 'object' || Array.isArray(input.attendance)) throw new Error('Presenze non valide.');
@@ -38,13 +38,13 @@ export default async function handler(request, response) {
   try {
     if (request.method === 'GET') {
       const date = requireDate(request.query.date);
-      const group = requireGroup(request.query.groupId);
+      const group = requireGroup(request.query.groupId, await getGroups());
       const existing = await readRecord(pathnameFor(date, group.id));
       return sendJson(response, 200, { record: existing ? { ...existing.value, version: existing.etag } : null });
     }
     if (request.method !== 'POST') return sendJson(response, 405, { error: 'Metodo non consentito.' });
     assertSameOrigin(request);
-    const input = normalizeRecord(parseBody(request));
+    const input = normalizeRecord(parseBody(request), await getGroups());
     const pathname = pathnameFor(input.date, input.group.id);
     const existing = await readRecord(pathname);
     if ((input.version || null) !== (existing?.etag || null)) return sendJson(response, 409, { error: 'Versione non aggiornata.', current: existing ? { ...existing.value, version: existing.etag } : null });

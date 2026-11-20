@@ -1,6 +1,7 @@
-import { groups, sendJson } from './lib/store.js';
+import { getGroups, sendJson } from './lib/store.js';
 
-export default function handler(request, response) {
+export default async function handler(request, response) {
   if (request.method !== 'GET') return sendJson(response, 405, { error: 'Metodo non consentito.' });
-  return sendJson(response, 200, { groups });
+  try { return sendJson(response, 200, { groups: await getGroups() }); }
+  catch (error) { return sendJson(response, 500, { error: 'Configurazione privata non disponibile.' }); }
 }
