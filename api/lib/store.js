@@ -38,16 +38,25 @@ function extractGroups(source) {
   throw new Error('Archivio gruppi incompleto.');
 }
 
+function extractStaff(source) {
+  const fallbackMatch = source.match(/staffPerTurno[\s\S]*?\|\|\(\[([^\]]+)\]\)/);
+  if (!fallbackMatch) return ['Staff 1', 'Staff 2', 'Staff 3'];
+  const names = [...fallbackMatch[1].matchAll(/['"]([^'"]+)['"]/g)].map((match) => match[1].trim()).filter(Boolean);
+  return names.length ? [...new Set(names)] : ['Staff 1', 'Staff 2', 'Staff 3'];
+}
+
 export async function getGroups() {
   const result = await get(privateRosterPath, { access: 'private' });
   if (!result) return groups;
-  const sourceGroups = extractGroups(await new Response(result.stream).text());
+  const source = await new Response(result.stream).text();
+  const sourceGroups = extractGroups(source);
+  const staff = extractStaff(source);
   return sourceGroups.map((group, index) => ({
     id: `roster-${index + 1}`,
     day: groupDay(group.label),
     venue: /eur/i.test(group.label) ? 'EUR' : 'Tito',
     label: group.label,
-    coaches: ['Staff 1', 'Staff 2', 'Staff 3'],
+    coaches: staff,
     names: group.names,
   })).filter((group) => group.day && Array.isArray(group.names) && group.names.length);
 }
