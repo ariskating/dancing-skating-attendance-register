@@ -1,5 +1,6 @@
 {
   "cleanUrls": true,
+  "buildCommand": "node --check assets/app.js && node tests/static-check.mjs",
   "headers": [
     {
       "source": "/(.*)",

@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "node --check assets/app.js && node tests/static-check.mjs",
     "check": "node tests/static-check.mjs"
   }
 }
