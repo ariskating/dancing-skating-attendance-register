@@ -34,7 +34,10 @@ const dirty = ref(false);
 const pad = (value) => String(value).padStart(2, '0');
 const isoDate = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 const today = isoDate(now);
-const activeGroups = computed(() => groups.value.filter((group) => group.day === day.value));
+const activeGroups = computed(() => groups.value.filter((group) => group.day === day.value).sort((a, b) => {
+  if (day.value !== 2 && day.value !== 5) return 0;
+  return groupCard(a.label).time.localeCompare(groupCard(b.label).time, 'it');
+}));
 const activeGroup = computed(() => activeGroups.value.find((group) => group.id === groupId.value) || activeGroups.value[0] || groups.value[0]);
 const sessionDates = computed(() => {
   const dates = [];
@@ -55,6 +58,16 @@ async function request(url, options) {
 function recordFor(date) { return records.value[date] || { attendance: [], staff: [], extras: [], version: null }; }
 function statusesFor(date) { return Object.fromEntries(recordFor(date).attendance.map((entry) => [entry.athleteId, entry.status])); }
 function groupCard(label) {
+  const timetable = {
+    'Mar - eur — MASTER 16-16:30': ['15:00–16:30', 'Master'],
+    'Mar - eur — JUNIOR E MASTER AVV': ['17:00–18:00', 'Junior e Master avviamento'],
+    'Mar - eur — MASTER INTERMEDIO': ['18:00–19:00', 'Master intermedio'],
+    'Ven - eur — MASTER INTERMEDIO': ['16:00–17:00', 'Master intermedio'],
+    'Ven - eur — JUNIOR + MASTER AVVI': ['17:00–18:00', 'Junior e Master avviamento'],
+    'Ven - eur — TRISETTIMANALI': ['18:00–19:00', 'Trisettimanali'],
+    'Ven - eur — MASTER AVANZATE 19-19:30': ['18:00–19:00', 'Master avanzate'],
+  };
+  if (timetable[label]) return { time: timetable[label][0], name: timetable[label][1] };
   const detail = label.split('—').at(-1)?.trim() || label;
   const match = detail.match(/\d{1,2}(?::\d{2})?(?:\s*[-–]\s*\d{1,2}(?::\d{2})?)?\s*$/);
   if (!match) return { time: 'Turno', name: detail };
@@ -63,7 +76,7 @@ function groupCard(label) {
 }
 function markDirty(message = 'Modifiche non salvate · premi Salva appello della data selezionata.') { dirty.value = true; status.value = message; }
 function confirmDiscard() { return !dirty.value || window.confirm('Ci sono modifiche non salvate. Vuoi abbandonarle?'); }
-function chooseDay(value) { if (!confirmDiscard()) return; day.value = value; groupId.value = groups.value.find((group) => group.day === value)?.id || groups.value[0].id; selectedStaff.value = []; dirty.value = false; loadMonth(); }
+function chooseDay(value) { if (!confirmDiscard()) return; day.value = value; groupId.value = activeGroups.value[0]?.id || groups.value[0].id; selectedStaff.value = []; dirty.value = false; loadMonth(); }
 function chooseGroup(value) { if (!confirmDiscard()) return; groupId.value = value; selectedStaff.value = []; dirty.value = false; loadMonth(); }
 function chooseMonth(value) { if (!confirmDiscard()) return; month.value = value; dirty.value = false; loadMonth(); }
 function selectDate(value) { if (value !== selectedDate.value && !confirmDiscard()) return; dirty.value = false; selectedDate.value = value; selectedStaff.value = [...(recordFor(value).staff || [])]; status.value = 'Data selezionata. Puoi aggiornare l’appello.'; }

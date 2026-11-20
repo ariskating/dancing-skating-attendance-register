@@ -12,6 +12,15 @@ export const groups = [
 
 const privateRosterPath = 'configuration/original-roster-source.txt';
 
+// These older subdivisions are kept in storage for historical records, but are
+// not separate sessions in the current timetable.
+const hiddenLegacyGroups = new Set([
+  'Mar - eur — MASTER P3 15-16',
+  'Ven - eur — MASTER 18-19:30',
+  'Ven - eur — MASTER P1 18',
+  'Ven - eur — MASTER P2 19',
+]);
+
 function groupDay(label) {
   const normalized = label.toLocaleLowerCase('it-IT');
   if (normalized.startsWith('luned')) return 1;
@@ -58,7 +67,7 @@ export async function getGroups() {
     label: group.label,
     coaches: staff,
     names: group.names,
-  })).filter((group) => group.day && Array.isArray(group.names) && group.names.length);
+  })).filter((group) => group.day && Array.isArray(group.names) && group.names.length && !hiddenLegacyGroups.has(group.label));
 }
 
 export function sendJson(response, status, body) {
