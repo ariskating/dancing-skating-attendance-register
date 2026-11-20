@@ -72,6 +72,8 @@ export async function getGroups() {
   if (!result) return groups;
   const source = await new Response(result.stream).text();
   const sourceGroups = extractGroups(source);
+  const historicalResult = await get('configuration/historical-roster.json', { access: 'private' });
+  const historical = historicalResult ? await new Response(historicalResult.stream).json() : {};
   const italicMatch = source.match(/const APPELLO_CORSIVO\s*=\s*(\{[\s\S]*?\})\s*;/);
   const italicByGroup = italicMatch ? JSON.parse(italicMatch[1]) : {};
   return sourceGroups.map((group, index) => ({
@@ -80,7 +82,7 @@ export async function getGroups() {
     venue: /eur/i.test(group.label) ? 'EUR' : 'Tito',
     label: group.label,
     coaches: groupDay(group.label) === 6 ? ['Fabrizio', 'Susanna'] : (staffByGroup[group.label] || defaultStaff),
-    names: group.names,
+    names: [...new Set([...group.names, ...(historical[`roster-${index + 1}`] || [])])].sort((a, b) => a.localeCompare(b, 'it')),
     italicNames: italicByGroup[group.label] || [],
   })).filter((group) => group.day && Array.isArray(group.names) && group.names.length && !hiddenLegacyGroups.has(group.label));
 }
