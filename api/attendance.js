@@ -10,11 +10,12 @@ function parseBody(request) {
   return body;
 }
 
-function normalizeRecord(input, roster) {
+function normalizeRecord(input, roster, previousRecord) {
   const date = requireDate(input.date);
   const group = requireGroup(input.groupId, roster);
   const staff = Array.isArray(input.staff) ? [...new Set(input.staff)] : [input.coach].filter(Boolean);
-  if (!staff.length || staff.some((name) => typeof name !== 'string' || !group.coaches.includes(name))) throw new Error('Staff non valido.');
+  const allowedStaff = new Set([...group.coaches, ...(previousRecord?.staff || [])]);
+  if (!staff.length || staff.some((name) => typeof name !== 'string' || !allowedStaff.has(name))) throw new Error('Staff non valido.');
   if (!input.attendance || typeof input.attendance !== 'object' || Array.isArray(input.attendance)) throw new Error('Presenze non valide.');
   const allowedAthletes = new Set(group.names);
   const attendance = Object.entries(input.attendance)
@@ -44,9 +45,11 @@ export default async function handler(request, response) {
     }
     if (request.method !== 'POST') return sendJson(response, 405, { error: 'Metodo non consentito.' });
     assertSameOrigin(request);
-    const input = normalizeRecord(parseBody(request), await getGroups());
-    const pathname = pathnameFor(input.date, input.group.id);
+    const body = parseBody(request);
+    const roster = await getGroups();
+    const pathname = pathnameFor(requireDate(body.date), requireGroup(body.groupId, roster).id);
     const existing = await readRecord(pathname);
+    const input = normalizeRecord(body, roster, existing?.value);
     if ((input.version || null) !== (existing?.etag || null)) return sendJson(response, 409, { error: 'Versione non aggiornata.', current: existing ? { ...existing.value, version: existing.etag } : null });
     const record = { schemaVersion: 2, date: input.date, groupId: input.group.id, staff: input.staff, attendance: input.attendance, extras: input.extras, savedAt: new Date().toISOString(), revision: crypto.randomUUID() };
     let saved;

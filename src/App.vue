@@ -40,6 +40,7 @@ const activeGroups = computed(() => groups.value.filter((group) => group.day ===
   return groupCard(a.label).time.localeCompare(groupCard(b.label).time, 'it');
 }));
 const activeGroup = computed(() => activeGroups.value.find((group) => group.id === groupId.value) || activeGroups.value[0] || groups.value[0]);
+const visibleStaff = computed(() => [...new Set([...(activeGroup.value?.coaches || []), ...(recordFor(selectedDate.value).staff || [])])]);
 const sessionDates = computed(() => {
   const dates = [];
   const last = new Date(year.value, month.value, 0).getDate();
@@ -124,7 +125,7 @@ loadConfig();
       <header class="head"><img class="brandlogo" :src="clubLogo" alt="Logo ASD Dancing Skating Club Roma"><div class="headtext"><strong>Registro presenze</strong><span class="sub">ASD Dancing Skating Club Roma</span></div><span class="private-badge">Archivio privato</span></header>
       <div class="days" role="group" aria-label="Seleziona giornata"><button v-for="item in days" :key="item.id" class="day" :class="{ active: day === item.id }" :disabled="loading || saving" @click="chooseDay(item.id)">{{ item.name }}<small>{{ item.place }}</small></button></div>
       <label>Orario e gruppo</label><div class="group-buttons" role="group" aria-label="Seleziona orario e gruppo"><button v-for="item in activeGroups" :key="item.id" class="group-button" :class="{ active: groupId === item.id }" :disabled="loading || saving" @click="chooseGroup(item.id)"><strong>{{ groupCard(item.label).time }}</strong><small>{{ groupCard(item.label).name }}</small></button></div>
-      <label>Staff presente</label><div class="staff"><label v-for="name in activeGroup.coaches" :key="name" class="coach-check"><input type="checkbox" :checked="selectedStaff.includes(name)" :disabled="loading || saving" @change="toggleStaff(name)"><span>{{ name }}</span></label></div>
+      <label>Staff presente</label><div class="staff"><label v-for="name in visibleStaff" :key="name" class="coach-check"><input type="checkbox" :checked="selectedStaff.includes(name)" :disabled="loading || saving" @change="toggleStaff(name)"><span>{{ name }}</span></label></div>
       <div class="months"><button v-for="value in [10, 11, 12]" :key="value" :class="{ active: month === value }" :disabled="loading || saving" @click="chooseMonth(value)">{{ monthNames[value - 10] }}</button></div>
     </section>
     <section class="panel">
