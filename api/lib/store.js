@@ -68,11 +68,11 @@ const staffByGroup = {
 };
 
 export async function getGroups() {
-  const result = await get(privateRosterPath, { access: 'private' });
+  const result = await get(privateRosterPath, { access: 'private', useCache: false });
   if (!result) return groups;
   const source = await new Response(result.stream).text();
   const sourceGroups = extractGroups(source);
-  const historicalResult = await get('configuration/historical-roster.json', { access: 'private' });
+  const historicalResult = await get('configuration/historical-roster.json', { access: 'private', useCache: false });
   const historical = historicalResult ? await new Response(historicalResult.stream).json() : {};
   const italicMatch = source.match(/const APPELLO_CORSIVO\s*=\s*(\{[\s\S]*?\})\s*;/);
   const italicByGroup = italicMatch ? JSON.parse(italicMatch[1]) : {};
@@ -113,7 +113,7 @@ export function requireDate(date) {
 }
 
 export async function readRecord(pathname) {
-  const result = await get(pathname, { access: 'private' });
+  const result = await get(pathname, { access: 'private', useCache: false });
   if (!result) return null;
   return { value: await new Response(result.stream).json(), etag: result.blob.etag };
 }
