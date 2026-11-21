@@ -3,7 +3,7 @@
 :root, button, input, select, textarea { letter-spacing: 0.01em; }
 .head strong, .group-button strong, .brandlogo { letter-spacing: 0.01em; }
 .scroll tbody td:first-child { font-weight: 400; font-style: normal; }
-.scroll tbody td:first-child.monoweekly { font-style: italic; }
+.scroll tbody td:first-child.monoweekly { font-style: italic; text-align: right; padding-right: 8px; }
 .brandlogo { object-fit: contain; padding: 3px; flex-shrink: 0; }
 .tiny.all-present { color: #fff; background: #0758df; border-color: #0758df; }
 .tiny.all-present:hover { background: #0647b7; border-color: #0647b7; }
