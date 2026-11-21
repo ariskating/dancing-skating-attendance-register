@@ -7,6 +7,8 @@
 .brandlogo { object-fit: contain; padding: 3px; flex-shrink: 0; }
 .tiny.all-present { color: #fff; background: #0758df; border-color: #0758df; }
 .tiny.all-present:hover { background: #0647b7; border-color: #0647b7; }
+.staff-summary th { text-align: left; padding-left: 8px; }
+.staff-summary td { font-size: 11px; line-height: 1.3; color: #315580; overflow-wrap: anywhere; }
 @media (max-width: 600px) {
   .days { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 2px; }
   .day { min-width: 0; font-size: 12px; }
