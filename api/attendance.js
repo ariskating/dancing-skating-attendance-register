@@ -50,12 +50,13 @@ export default async function handler(request, response) {
     const pathname = pathnameFor(requireDate(body.date), requireGroup(body.groupId, roster).id);
     const existing = await readRecord(pathname);
     const input = normalizeRecord(body, roster, existing?.value);
-    if ((input.version || null) !== (existing?.etag || null)) return sendJson(response, 409, { error: 'Versione non aggiornata.', current: existing ? { ...existing.value, version: existing.etag } : null });
+    if ((body.version || null) !== (existing?.etag || null)) return sendJson(response, 409, { error: 'Versione non aggiornata.', current: existing ? { ...existing.value, version: existing.etag } : null });
     const record = { schemaVersion: 2, date: input.date, groupId: input.group.id, staff: input.staff, attendance: input.attendance, extras: input.extras, savedAt: new Date().toISOString(), revision: crypto.randomUUID() };
     let saved;
     try { saved = await writeRecord(pathname, record, existing?.etag); }
     catch (error) { if (error.code === 'CONFLICT') { const current = await readRecord(pathname); return sendJson(response, 409, { error: 'Versione non aggiornata.', current: current ? { ...current.value, version: current.etag } : null }); } throw error; }
-    await writeAudit({ type: 'attendance.saved', at: record.savedAt, date: record.date, groupId: record.groupId, revision: record.revision, count: record.attendance.length, requestId: request.headers['x-vercel-id'] || null });
+    try { await writeAudit({ type: 'attendance.saved', at: record.savedAt, date: record.date, groupId: record.groupId, revision: record.revision, count: record.attendance.length, requestId: request.headers['x-vercel-id'] || null }); }
+    catch (error) { console.error('Registrazione audit non riuscita', error); }
     return sendJson(response, 200, { record: { ...record, version: saved.etag } });
   } catch (error) {
     return sendJson(response, 400, { error: error instanceof SyntaxError ? 'JSON non valido.' : error.message || 'Richiesta non valida.' });

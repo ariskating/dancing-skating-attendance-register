@@ -84,6 +84,7 @@ function chooseMonth(value) { if (!confirmDiscard()) return; month.value = value
 function selectDate(value) { if (value !== selectedDate.value && !confirmDiscard()) return; dirty.value = false; selectedDate.value = value; selectedStaff.value = [...(recordFor(value).staff || [])]; status.value = 'Data selezionata. Puoi aggiornare l’appello.'; }
 function toggleStaff(name) { selectedStaff.value = selectedStaff.value.includes(name) ? selectedStaff.value.filter((item) => item !== name) : [...selectedStaff.value, name]; markDirty(); }
 function cycleAttendance(name, date) {
+  if (date !== selectedDate.value) { if (!confirmDiscard()) return; dirty.value = false; selectedDate.value = date; selectedStaff.value = [...(recordFor(date).staff || [])]; }
   const current = statusesFor(date)[name] || ''; const next = statusOrder[(statusOrder.indexOf(current) + 1) % statusOrder.length]; const currentRecord = recordFor(date); const attendance = { ...statusesFor(date), [name]: next };
   if (!next) delete attendance[name];
   records.value = { ...records.value, [date]: { ...currentRecord, attendance: Object.entries(attendance).map(([athleteId, value]) => ({ athleteId, status: value })) } }; markDirty();
@@ -108,7 +109,7 @@ async function saveDay() {
   try {
     const payload = await request('/api/attendance', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date: selectedDate.value, groupId: activeGroup.value.id, staff: selectedStaff.value, attendance: statusesFor(selectedDate.value), extras: currentExtras.value, version: existing.version || null }) });
     records.value = { ...records.value, [selectedDate.value]: payload.record }; extras.value = { ...extras.value, [selectedDate.value]: payload.record.extras || [] }; dirty.value = false; status.value = '✓ Appello salvato nell’archivio privato.';
-  } catch (error) { if (error.status === 409) { records.value = { ...records.value, [selectedDate.value]: error.current || recordFor(selectedDate.value) }; status.value = 'Un’altra modifica è stata salvata prima della tua: l’appello è stato ricaricato.'; } else status.value = error.message; } finally { saving.value = false; }
+  } catch (error) { if (error.status === 409) { status.value = 'Un’altra persona ha salvato questo appello nel frattempo. Le tue modifiche sono ancora visibili ma non salvate: annotale, ricarica la pagina e inseriscile di nuovo.'; } else status.value = error.message; } finally { saving.value = false; }
 }
 function downloadCsv() {
   const rows = [['Data', 'Turno', 'Staff', 'Atleta', 'Esito']];
