@@ -79,7 +79,7 @@ export async function getGroups() {
   return sourceGroups.map((group, index) => ({
     id: `roster-${index + 1}`,
     day: groupDay(group.label),
-    venue: /eur/i.test(group.label) ? 'EUR' : 'Tito',
+    venue: /eur/i.test(group.label) || groupDay(group.label) === 6 ? 'EUR' : 'Tito',
     label: group.label,
     coaches: groupDay(group.label) === 6 ? ['Fabrizio', 'Susanna'] : (staffByGroup[group.label] || defaultStaff),
     names: [...new Set([...group.names, ...(historical[`roster-${index + 1}`] || [])])].filter(name => !(historical.excluded?.[`roster-${index + 1}`] || []).includes(name)).sort((a, b) => a.localeCompare(b, 'it')),
