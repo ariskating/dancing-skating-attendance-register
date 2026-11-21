@@ -15,16 +15,19 @@ function normalizeRecord(input, roster, previousRecord) {
   const group = requireGroup(input.groupId, roster);
   const staff = Array.isArray(input.staff) ? [...new Set(input.staff)] : [input.coach].filter(Boolean);
   const allowedStaff = new Set([...group.coaches, ...(previousRecord?.staff || [])]);
-  if (!staff.length || staff.some((name) => typeof name !== 'string' || !allowedStaff.has(name))) throw new Error('Staff non valido.');
+  if (staff.some((name) => typeof name !== 'string' || !allowedStaff.has(name))) throw new Error('Staff non valido.');
   if (!input.attendance || typeof input.attendance !== 'object' || Array.isArray(input.attendance)) throw new Error('Presenze non valide.');
-  const allowedAthletes = new Set(group.names);
+  const allowedAthletes = new Set([...group.names, ...(previousRecord?.attendance || []).map(entry => entry.athleteId)]);
   const attendance = Object.entries(input.attendance)
     .filter(([, status]) => status !== undefined && status !== '')
     .map(([athleteId, status]) => {
       if (!allowedAthletes.has(athleteId) || !allowedStatuses.has(status)) throw new Error('Presenza non valida.');
       return { athleteId, status };
     });
-  if (attendance.length > group.names.length) throw new Error('Troppe presenze.');
+  for (const entry of previousRecord?.attendance || []) {
+    if (!group.names.includes(entry.athleteId) && !attendance.some(item => item.athleteId === entry.athleteId)) attendance.push(entry);
+  }
+  if (attendance.length > allowedAthletes.size) throw new Error('Troppe presenze.');
   const extras = Array.isArray(input.extras) ? input.extras : [];
   if (extras.length > 25) throw new Error('Troppi atleti extra.');
   const normalizedExtras = extras.map((extra) => {

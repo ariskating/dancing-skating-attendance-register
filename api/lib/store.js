@@ -82,7 +82,7 @@ export async function getGroups() {
     venue: /eur/i.test(group.label) ? 'EUR' : 'Tito',
     label: group.label,
     coaches: groupDay(group.label) === 6 ? ['Fabrizio', 'Susanna'] : (staffByGroup[group.label] || defaultStaff),
-    names: [...new Set([...group.names, ...(historical[`roster-${index + 1}`] || [])])].sort((a, b) => a.localeCompare(b, 'it')),
+    names: [...new Set([...group.names, ...(historical[`roster-${index + 1}`] || [])])].filter(name => !(historical.excluded?.[`roster-${index + 1}`] || []).includes(name)).sort((a, b) => a.localeCompare(b, 'it')),
     italicNames: italicByGroup[group.label] || [],
   })).filter((group) => group.day && Array.isArray(group.names) && group.names.length && !hiddenLegacyGroups.has(group.label));
 }
