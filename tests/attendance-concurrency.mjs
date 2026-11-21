@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
+import { normalizeBlobEtag } from '../api/lib/store.js';
+
+assert.equal(normalizeBlobEtag('W/"versione"'), '"versione"');
+assert.equal(normalizeBlobEtag('"versione"'), '"versione"');
 
 const group = { id: 'test-group', names: ['Atleta'], coaches: ['Staff'] };
 let existing = { value: { staff: ['Staff'], attendance: [{ athleteId: 'Atleta storica', status: 'A' }] }, etag: 'versione-1' };

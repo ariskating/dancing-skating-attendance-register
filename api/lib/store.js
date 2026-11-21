@@ -115,8 +115,12 @@ export function requireDate(date) {
 export async function readRecord(pathname) {
   const result = await get(pathname, { access: 'private', useCache: false });
   if (!result) return null;
-  return { value: await new Response(result.stream).json(), etag: result.blob.etag };
+  // Blob responses may use a weak HTTP ETag (W/"..."); conditional writes
+  // require the equivalent strong storage ETag ("...").
+  return { value: await new Response(result.stream).json(), etag: normalizeBlobEtag(result.blob.etag) };
 }
+
+export function normalizeBlobEtag(etag) { return etag.replace(/^W\//, ''); }
 
 export async function writeRecord(pathname, value, etag) {
   try {
