@@ -54,6 +54,7 @@ const staffByGroup = {
   'Lunedì — TURNO 17': ['Arianna', 'Daniela', 'Sofia', 'Jamila', 'Ania'],
   'Lunedì — TURNO 18': ['Arianna', 'Daniela', 'Fabrizio', 'Laura'],
   'Lunedì — TURNO 19': ['Daniela', 'Fabrizio', 'Laura'],
+  'Mar - eur — MASTER 16-16:30': ['Rita', 'Lisa', 'Daniela'],
   'Mar - eur — JUNIOR E MASTER AVV': ['Arianna', 'Lisa'],
   'Mar - eur — MASTER INTERMEDIO': ['Arianna', 'Lisa'],
   'Mercoledì — TURNO 17': ['Daniela', 'Sofia', 'Jamila', 'Giulia'],
