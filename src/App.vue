@@ -62,6 +62,7 @@ function recordFor(date) { return records.value[date] || { attendance: [], staff
 function statusesFor(date) { return Object.fromEntries(recordFor(date).attendance.map((entry) => [entry.athleteId, entry.status])); }
 function groupCard(label) {
   const timetable = {
+    'Mercoledì — MASTER 15:30': ['15:30–17:00', 'Master'],
     'Mar - eur — MASTER 16-16:30': ['15:00–16:30', 'Master'],
     'Mar - eur — JUNIOR E MASTER AVV': ['17:00–18:00', 'Junior e Master avviamento'],
     'Mar - eur — MASTER INTERMEDIO': ['18:00–19:00', 'Master intermedio'],

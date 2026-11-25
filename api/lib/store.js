@@ -15,6 +15,7 @@ const privateRosterPath = 'configuration/original-roster-source.txt';
 // These older subdivisions are kept in storage for historical records, but are
 // not separate sessions in the current timetable.
 const hiddenLegacyGroups = new Set([
+  'Mercoledì — MASTER 16',
   'Mar - eur — MASTER P3 15-16',
   'Ven - eur — MASTER 18-19:30',
   'Ven - eur — MASTER P1 18',
